@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /restaurants/{slug} {
+      // Cualquiera puede leer la carta (es lo que abre el QR, sin login)
+      allow read: if true;
+
+      // Solo el dueño autenticado puede crear o modificar SU restaurante
+      allow create: if request.auth != null
+                    && request.resource.data.ownerUid == request.auth.uid;
+
+      allow update, delete: if request.auth != null
+                    && resource.data.ownerUid == request.auth.uid;
+
+      // Pedidos del comandero: cualquier comensal puede crear uno (sin login,
+      // así funciona desde el QR), pero solo el dueño del restaurante puede
+      // confirmarlo, cambiar su estado o borrarlo.
+      match /orders/{orderId} {
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if request.auth != null
+          && get(/databases/$(database)/documents/restaurants/$(slug)).data.ownerUid == request.auth.uid;
+      }
+
+      // Lista de turno: cualquier comensal puede apuntarse; solo el dueño
+      // puede sentar o quitar a alguien de la cola.
+      match /queue/{entryId} {
+        allow read: if true;
+        allow create: if true;
+        allow update, delete: if request.auth != null
+          && get(/databases/$(database)/documents/restaurants/$(slug)).data.ownerUid == request.auth.uid;
+      }
+    }
+  }
+}
