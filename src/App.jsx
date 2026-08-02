@@ -24,7 +24,7 @@ export default function App() {
       <Route path="/panel" element={user === undefined ? <Loading /> : user ? <Hub user={user} /> : <Navigate to="/login" />} />
       <Route path="/panel/:slug" element={user === undefined ? <Loading /> : user ? <AdminPanel user={user} /> : <Navigate to="/login" />} />
 
-      <Route path="/" element={<Navigate to="/planes" />} />
+      <Route path="/" element={user === undefined ? <Loading /> : user ? <Navigate to="/panel" /> : <Navigate to="/login" />} />
     </Routes>
   );
 }
